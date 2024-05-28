@@ -11,6 +11,12 @@ python3 convert.py models/llama3_8b_chat_brainstorm/ --outfile llama3_8b_chat_br
 ./quantize llama3_8b_chat_brainstorm.f32.gguf  llama3_8b_chat_brainstorm.Q4_0.gguf Q4_0
 ./quantize llama3_8b_chat_brainstorm.f32.gguf  llama3_8b_chat_brainstorm.Q8_0.gguf Q8_0
 
+* IQ1_S
+You need the importance matrix
+./imatrix -m llama3_8b_chat_brainstorm.f32.gguf -f ../finetune/brainstorm/brainstorm_vicuna_1k/test.jsonl 
+./quantize --imatrix imatrix.dat llama3_8b_chat_brainstorm.f32.gguf llama3_8b_chat_brainstorm.IQ1_S.gguf IQ1_S 
+
+
 
 
 https://github.com/ggerganov/llama.cpp/issues/6819

@@ -1,0 +1,32 @@
+origin	https://github.com/ggerganov/llama.cpp.git
+
+conda create -n llama.cpp python=3.10
+conda activate llama.cpp
+python3 -m pip install -r requirements.txt
+make
+cp -r ../qlora_tutorial/llm_qlora/models/llama3_8b_chat_brainstorm ./models
+
+python3 convert.py models/llama3_8b_chat_brainstorm/ --outfile llama3_8b_chat_brainstorm.f32.gguf --outtype f32 --vocab-type bpe
+
+./quantize llama3_8b_chat_brainstorm.f32.gguf  llama3_8b_chat_brainstorm.Q4_0.gguf Q4_0
+./quantize llama3_8b_chat_brainstorm.f32.gguf  llama3_8b_chat_brainstorm.Q8_0.gguf Q8_0
+
+* IQ1_S
+You need the importance matrix
+./imatrix -m llama3_8b_chat_brainstorm.f32.gguf -f ../finetune/brainstorm/brainstorm_vicuna_1k/test.jsonl 
+./quantize --imatrix imatrix.dat llama3_8b_chat_brainstorm.f32.gguf llama3_8b_chat_brainstorm.IQ1_S.gguf IQ1_S 
+
+
+
+
+https://github.com/ggerganov/llama.cpp/issues/6819
+https://github.com/huggingface/transformers/issues/24899
+
+QWEN
+https://qwen.readthedocs.io/en/latest/quantization/gguf.html
+#python3 convert-hf-to-gguf.py ~/.cache/huggingface/hub/models--Qwen--Qwen2-7B-Instruct/snapshots/41c66b0be1c3081f13defc6bdf946c2ef240d6a6/ --outfile Qwen2-7B-Instruct.f16.gguf --outtype f16 
+
+MISTRAL
+#python3 convert.py ~/.cache/huggingface/hub/models--mistralai--Mistral-7B-Instruct-v0.3/snapshots/83e9aa141f2e28c82232fea5325f54edf17c43de/ --outfile mistral-7B-Instruct-v0.3.f16.gguf --outtype f16 --vocab-type spm
+
+

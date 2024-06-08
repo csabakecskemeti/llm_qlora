@@ -25,3 +25,8 @@ https://github.com/huggingface/transformers/issues/24899
 QWEN
 https://qwen.readthedocs.io/en/latest/quantization/gguf.html
 #python3 convert-hf-to-gguf.py ~/.cache/huggingface/hub/models--Qwen--Qwen2-7B-Instruct/snapshots/41c66b0be1c3081f13defc6bdf946c2ef240d6a6/ --outfile Qwen2-7B-Instruct.f16.gguf --outtype f16 
+
+MISTRAL
+#python3 convert.py ~/.cache/huggingface/hub/models--mistralai--Mistral-7B-Instruct-v0.3/snapshots/83e9aa141f2e28c82232fea5325f54edf17c43de/ --outfile mistral-7B-Instruct-v0.3.f16.gguf --outtype f16 --vocab-type spm
+
+

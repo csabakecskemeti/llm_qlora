@@ -29,4 +29,5 @@ https://qwen.readthedocs.io/en/latest/quantization/gguf.html
 MISTRAL
 #python3 convert.py ~/.cache/huggingface/hub/models--mistralai--Mistral-7B-Instruct-v0.3/snapshots/83e9aa141f2e28c82232fea5325f54edf17c43de/ --outfile mistral-7B-Instruct-v0.3.f16.gguf --outtype f16 --vocab-type spm
 
-
+# Split large files
+./gguf-split --split --split-max-size 48G ~/Qwen2-72B-Instruct/Qwen2-72B-Instruct.Q8_0.gguf  ~/Qwen2-72B-Instruct/splits/Qwen2-72B-Instruct.Q8_0

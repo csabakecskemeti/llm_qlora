@@ -1,0 +1,33 @@
+model_name: Mistral-7B-Instruct-v0.3_brainstorm-v3.1
+base_model: mistralai/Mistral-7B-Instruct-v0.3
+#model_family: llama  # if unspecified will use AutoModelForCausalLM/AutoTokenizer
+model_context_window: 32768  # if unspecified will use tokenizer.model_max_length
+data:
+  type: vicuna
+  dataset: DevQuasar/brainstorm-v3.1_vicnua_1k  # HuggingFace hub
+  user_header: "### HUMAN:\n"
+  response_header: "### RESPONSE:\n"
+lora:
+  r: 8
+  lora_alpha: 32
+  target_modules:  # modules for which to train lora adapters
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+  - lm_head
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+trainer:
+  batch_size: 1
+  gradient_accumulation_steps: 4
+  warmup_steps: 100
+  num_train_epochs: 20
+  learning_rate: 0.0002  # 2e-4
+  logging_steps: 20
+trainer_output_dir: trainer_outputs_Mistral-7B-Instruct-v0.3/
+model_output_dir: models/  # model saved in {model_output_dir}/{model_name}

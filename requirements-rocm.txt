@@ -1,0 +1,10 @@
+transformers
+accelerate
+bitsandbytes
+datasets
+peft
+loralib
+sentencepiece
+scipy
+peft
+tensorboardX

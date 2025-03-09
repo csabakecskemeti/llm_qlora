@@ -10,10 +10,12 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 from data_processor.OrcaDataProcessor import OrcaDataProcessor
 from data_processor.RawTextDataProcessor import RawTextDataProcessor
 from data_processor.VicunaDataProcessor import VicunaDataProcessor
+from data_processor.VicunaDataProcessorOrcaagent import VicunaDataProcessorOrcaagent
 
 os.environ['NCCL_P2P_DISABLE'] = '1'
 os.environ['NCCL_IB_DISABLE'] = '1'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['PYTORCH_HIP_ALLOC_CONF'] = 'expandable_segments:True'
 
 class QloraTrainer:
     def __init__(self, config: dict):
@@ -27,30 +29,22 @@ class QloraTrainer:
     def load_base_model(self):
         model_id = self.config["base_model"]
 
-        # bnb_config = BitsAndBytesConfig(
-        #     # load_in_8bit=True,
-        #     bnb_4bit_use_double_quant=True,
-        #     # bnb_4bit_quant_type="fp8",
-        #     bnb_4bit_compute_dtype=torch.bfloat16
-        # )
-        # test 4bit
+        # 4bit
         bnb_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
             bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            #llm_int8_enable_fp32_cpu_offload=True
         )
 
         device = "cuda:0"
         if "model_family" in self.config and self.config["model_family"] == "llama":
             tokenizer = LlamaTokenizer.from_pretrained(model_id)
-            # model = LlamaForCausalLM.from_pretrained(model_id, quantization_config=bnb_config, device_map="auto")
-            # model = LlamaForCausalLM.from_pretrained(model_id, device_map="auto")
             # model = LlamaForCausalLM.from_pretrained(model_id, quantization_config=bnb_config)
             model = LlamaForCausalLM.from_pretrained(model_id, quantization_config=bnb_config, device_map=device)
         else:
             tokenizer = AutoTokenizer.from_pretrained(model_id)
-            # model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=bnb_config, device_map="auto")
-            # model = AutoModelForCausalLM.from_pretrained(model_id, device_map="auto")
             # model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=bnb_config)
             model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=bnb_config, device_map=device)
 
@@ -105,10 +99,14 @@ class QloraTrainer:
                 warmup_steps=config_dict["warmup_steps"],
                 num_train_epochs=config_dict["num_train_epochs"],
                 learning_rate=config_dict["learning_rate"],
-                fp16=True,
+                fp16=False,
+                bf16=True,
+                gradient_checkpointing=True,
                 logging_steps=config_dict["logging_steps"],
                 output_dir=self.config["trainer_output_dir"],
                 report_to="tensorboard",
+                optim="paged_adamw_8bit",
+                #optim="adafactor"
                 #optim="adamw"
             ),
             data_collator=transformers.DataCollatorForLanguageModeling(self.tokenizer, mlm=False),
@@ -161,6 +159,8 @@ class QloraTrainer:
         )
 
     def _setup_data_processor(self):
+        if self.config["data"]["type"] == "orcaagent":
+            self.data_processor = VicunaDataProcessorOrcaagent(self.config, self.tokenizer)
         if self.config["data"]["type"] == "vicuna":
             self.data_processor = VicunaDataProcessor(self.config, self.tokenizer)
         elif self.config["data"]["type"] == "orca":

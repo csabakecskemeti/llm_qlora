@@ -1,0 +1,33 @@
+model_name: qwq-32b_chat_brainstorm-v3.2
+base_model: Qwen/QwQ-32B
+#model_family: llama  # if unspecified will use AutoModelForCausalLM/AutoTokenizer
+#model_context_window: 131072  # if unspecified will use tokenizer.model_max_length
+#model_context_window: 8192  # if unspecified will use tokenizer.model_max_length
+data:
+  type: vicuna
+  dataset: DevQuasar/brainstorm-v3.1_vicnua_1k # HuggingFace hub
+  user_header: "### HUMAN:\n"
+  response_header: "### RESPONSE:\n"
+lora:
+  r: 8
+  lora_alpha: 32
+  target_modules:  # modules for which to train lora adapters
+  - down_proj
+  - v_proj
+  - up_proj
+  - q_proj
+  - o_proj
+  - gate_proj
+  - k_proj
+  lora_dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+trainer:
+  batch_size: 1
+  gradient_accumulation_steps: 4
+  warmup_steps: 100
+  num_train_epochs: 10
+  learning_rate: 0.0002  # 2e-4
+  logging_steps: 100
+trainer_output_dir: trainer_outputs_qwq32b_v3.2/
+model_output_dir: models/  # model saved in {model_output_dir}/{model_name}
